@@ -5,7 +5,7 @@ from menpo.feature import no_op
 from menpo.visualize import print_dynamic
 from menpofit.visualize import print_progress
 from menpofit.result import (
-    NonParametricAlgorithmResult, compute_normalise_point_to_point_error)
+    NonParametricAlgorithmResult, euclidean_bb_normalised_error)
 from menpofit.math import IRLRegression, IIRLRegression
 
 
@@ -129,7 +129,7 @@ class Newton(SupervisedDescentAlgorithm):
     """
     def __init__(self, patch_features=no_op, patch_shape=(17, 17),
                  n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, bias=True):
         super(Newton, self).__init__()
 
@@ -147,7 +147,7 @@ class GaussNewton(SupervisedDescentAlgorithm):
     """
     def __init__(self, patch_features=no_op, patch_shape=(17, 17),
                  n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, bias=True, alpha2=0):
         super(GaussNewton, self).__init__()
 

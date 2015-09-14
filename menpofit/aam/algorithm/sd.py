@@ -137,7 +137,7 @@ class ParametricSupervisedDescentAlgorithm(SupervisedDescentAlgorithm):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5):
         super(ParametricSupervisedDescentAlgorithm, self).__init__()
 
@@ -304,7 +304,7 @@ class MeanTemplateNewton(MeanTemplate):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, bias=True):
         super(MeanTemplateNewton, self).__init__(
             aam_interface, n_iterations=n_iterations,
@@ -318,7 +318,7 @@ class MeanTemplateGaussNewton(MeanTemplate):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, alpha2=0, bias=True):
         super(MeanTemplateGaussNewton, self).__init__(
             aam_interface, n_iterations=n_iterations,
@@ -358,7 +358,7 @@ class ProjectOutNewton(ProjectOut):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, bias=True):
         super(ProjectOutNewton, self).__init__(
             aam_interface, n_iterations=n_iterations,
@@ -372,7 +372,7 @@ class ProjectOutGaussNewton(ProjectOut):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, alpha2=0, bias=True):
         super(ProjectOutGaussNewton, self).__init__(
             aam_interface, n_iterations=n_iterations,
@@ -408,7 +408,7 @@ class AppearanceWeightsNewton(AppearanceWeights):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, bias=True):
         super(AppearanceWeightsNewton, self).__init__(
             aam_interface, n_iterations=n_iterations,
@@ -423,7 +423,7 @@ class AppearanceWeightsGaussNewton(AppearanceWeights):
     r"""
     """
     def __init__(self, aam_interface, n_iterations=3,
-                 compute_error=compute_normalise_point_to_point_error,
+                 compute_error=euclidean_bb_normalised_error,
                  eps=10**-5, alpha=0, alpha2=0, bias=True):
         super(AppearanceWeightsGaussNewton, self).__init__(
             aam_interface, n_iterations=n_iterations,
