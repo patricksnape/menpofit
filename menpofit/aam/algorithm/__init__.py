@@ -5,10 +5,10 @@ from .lk import (
     ModifiedAlternatingForwardCompositional,
     ModifiedAlternatingInverseCompositional,
     WibergForwardCompositional, WibergInverseCompositional)
-from .sd import (
-    MeanTemplateNewton,
-    MeanTemplateGaussNewton,
-    ProjectOutNewton,
-    ProjectOutGaussNewton,
-    AppearanceWeightsNewton,
-    AppearanceWeightsGaussNewton)
+# from .sd import (
+#     MeanTemplateNewton,
+#     MeanTemplateGaussNewton,
+#     ProjectOutNewton,
+#     ProjectOutGaussNewton,
+#     AppearanceWeightsNewton,
+#     AppearanceWeightsGaussNewton)
