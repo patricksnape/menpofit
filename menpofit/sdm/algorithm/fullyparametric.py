@@ -8,6 +8,7 @@ from .base import (BaseSupervisedDescentAlgorithm,
                    compute_parametric_delta_x, features_per_patch,
                    update_parametric_estimates, print_parametric_info)
 from menpo.model import PCAModel
+from menpo.visualize import print_dynamic
 from menpofit.math import IIRLRegression, IRLRegression
 from menpofit.modelinstance import OrthoPDM
 from menpofit.visualize import print_progress
@@ -38,17 +39,23 @@ class FullyParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
     def _compute_training_features(self, images, gt_shapes, current_shapes,
                                    prefix='', verbose=False):
         wrap = partial(print_progress,
-                       prefix='{}Extracting patches'.format(prefix),
+                       prefix='{}Extracting ground truth patches'.format(prefix),
                        end_with_newline=not prefix, verbose=verbose)
 
         n_images = len(images)
         # Extract patches from ground truth
         gt_patches = [features_per_patch(im, gt_s, self.patch_shape,
                                          self.patch_features)
-                      for gt_s, im in zip(gt_shapes, images)]
+                      for gt_s, im in wrap(zip(gt_shapes, images))]
         # Calculate appearance model from extracted gt patches
         gt_patches = np.array(gt_patches).reshape([n_images, -1])
+        if verbose:
+            print_dynamic('{}Building Appearance Model'.format(prefix))
         self.appearance_model = self.appearance_model_cls(gt_patches)
+
+        wrap = partial(print_progress,
+                       prefix='{}Extracting patches'.format(prefix),
+                       end_with_newline=not prefix, verbose=verbose)
 
         features = []
         for im, shapes in wrap(zip(images, current_shapes)):
