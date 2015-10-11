@@ -626,36 +626,43 @@ def pointcloud_to_points(wrapped):
     return wrapper
 
 
+def bb_area(shape):
+    # Area = w + h
+    height, width = np.max(shape, axis=0) - np.min(shape, axis=0)
+    return height * width
+
+
 def bb_perimeter(shape):
-    # Perimeter = 2(w + h)
+    # Area = 2(w + h)
     height, width = np.max(shape, axis=0) - np.min(shape, axis=0)
     return 2 * (height + width)
 
 
-def bb_quarter_perimeter(shape):
-    # Perimeter = 2(w + h)
-    # 0.5(w + h) -> Perimeter / 4
+def bb_avg_edge_length(shape):
+    # 0.5(w + h) = (2w + 2h) / 4
     height, width = np.max(shape, axis=0) - np.min(shape, axis=0)
     return 0.5 * (height + width)
 
 
 def bb_diagonal(shape):
+    # sqrt(w**2 + h**2)
     height, width = np.max(shape, axis=0) - np.min(shape, axis=0)
     return np.sqrt(width ** 2 + height ** 2)
 
 
 bb_norm_types = {
-    'quarter_perimeter': bb_quarter_perimeter,
+    'avg_edge_length': bb_avg_edge_length,
     'perimeter': bb_perimeter,
-    'diagonal': bb_diagonal
+    'diagonal': bb_diagonal,
+    'area': bb_area
 }
 
 @pointcloud_to_points
 def bb_normalised_error(shape_error_f, shape, gt_shape,
-                        norm_shape=None, norm_type='quarter_perimeter'):
+                        norm_shape=None, norm_type='avg_edge_length'):
     if norm_type not in bb_norm_types:
         raise ValueError('norm_type must be one of '
-                         '{quarter_perimeter, perimeter, diagonal}.')
+                         '{avg_edge_length, perimeter, diagonal, area}.')
     if norm_shape is None:
         norm_shape = gt_shape
     return (shape_error_f(shape, gt_shape) /
