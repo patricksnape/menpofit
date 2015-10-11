@@ -1,8 +1,7 @@
 import numpy as np
 
 
-# TODO: document me!
-from menpo.math import pca, eigenvalue_decomposition
+from menpo.math import pca
 
 
 class IRLRegression(object):
@@ -185,6 +184,67 @@ class PCARegression(object):
         if self.normalise_x:
             x = self._normalise_x(x)
 
+        if self.bias:
+            if len(x.shape) == 1:
+                x = np.hstack((x, np.ones(1)))
+            else:
+                x = np.hstack((x, np.ones((x.shape[0], 1))))
+        return np.dot(x, self.R)
+
+
+class CCARegression(object):
+    r"""
+    Multivariate Linear Regression using CCA reconstructions
+
+    Parameters
+    ----------
+    X : numpy.array
+        The regression features used to create the coefficient matrix.
+    T : numpy.array
+        The shapes differential that denote the dependent variable.
+    variance: float or None, Optional
+        The SVD variance.
+        Default: None
+
+    Raises
+    ------
+    ValueError
+        variance must be set to a number between 0 and 1
+    """
+    def __init__(self, variance=None, bias=True, eps=1e-10):
+        self.variance = variance
+        self.bias = bias
+        self.R = None
+        self.eps = eps
+
+    def train(self, X, Y):
+        if self.bias:
+            X = np.hstack((X, np.ones((X.shape[0], 1))))
+
+        # Reduce variance of X
+        U, l, _ = pca(X, centre=False)
+        variation = np.cumsum(l) / np.sum(l)
+        k = U.shape[0]
+        if self.variance is not None:
+            # Inverted for easier parameter semantics
+            k = np.sum(variation < self.variance)
+            U = U[:k, :]
+
+        inv_eig = np.sqrt(np.linalg.inv(np.diag(l[:k])))
+        U = inv_eig.dot(U)
+
+        A = X.T.dot(Y).dot(Y.T).dot(X)
+        A_tilde = U.dot(A).dot(U.T)
+
+        V, l2, _ = pca(A_tilde, centre=False)
+        H = V.dot(U)
+
+        self.R = H.T.dot(np.linalg.pinv(X.dot(H.T)).dot(Y))
+
+    def increment(self, X, Y):
+        raise NotImplementedError()
+
+    def predict(self, x):
         if self.bias:
             if len(x.shape) == 1:
                 x = np.hstack((x, np.ones(1)))
