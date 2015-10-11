@@ -7,7 +7,8 @@ from .base import (BaseSupervisedDescentAlgorithm,
                    compute_non_parametric_delta_x, features_per_image,
                    features_per_patch, update_non_parametric_estimates,
                    print_non_parametric_info)
-from menpofit.math import IIRLRegression, IRLRegression, PCARegression
+from menpofit.math import IIRLRegression, IRLRegression, PCRRegression, \
+    CCARegression
 
 
 class NonParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
@@ -105,7 +106,26 @@ class NonParametricGaussNewton(NonParametricSDAlgorithm):
         self.eps = eps
 
 
-class NonParametricPCARegression(NonParametricSDAlgorithm):
+class NonParametricPCRRegression(NonParametricSDAlgorithm):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, variance=None, bias=True, normalise_x=True):
+        super(NonParametricPCRRegression, self).__init__()
+
+        self._regressor_cls = partial(PCRRegression, variance=variance,
+                                      bias=bias, normalise_x=normalise_x)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
+class NonParametricCCARegression(NonParametricSDAlgorithm):
     r"""
     """
 
@@ -113,9 +133,9 @@ class NonParametricPCARegression(NonParametricSDAlgorithm):
                  n_iterations=3,
                  compute_error=euclidean_bb_normalised_error,
                  eps=10 ** -5, variance=None, bias=True):
-        super(NonParametricPCARegression, self).__init__()
+        super(NonParametricCCARegression, self).__init__()
 
-        self._regressor_cls = partial(PCARegression, variance=variance,
+        self._regressor_cls = partial(CCARegression, variance=variance,
                                       bias=bias)
         self.patch_shape = patch_shape
         self.patch_features = patch_features

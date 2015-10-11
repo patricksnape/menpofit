@@ -1,6 +1,6 @@
 from .fitter import SupervisedDescentFitter, SDM, RegularizedSDM
 from .algorithm import (NonParametricNewton, NonParametricGaussNewton,
-                        NonParametricPCARegression,
+                        NonParametricPCRRegression, NonParametricCCARegression,
                         ParametricShapeNewton, ParametricShapeGaussNewton,
                         ParametricAppearanceProjectOutNewton,
                         ParametricAppearanceProjectOutGaussNewton,

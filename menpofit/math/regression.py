@@ -86,9 +86,9 @@ class IIRLRegression(IRLRegression):
         return self.W.dot(x.T).T
 
 
-class PCARegression(object):
+class PCRRegression(object):
     r"""
-    Multivariate Linear Regression using PCA reconstructions
+    Multivariate Linear Regression using Principal Component Regression
 
     Parameters
     ----------
@@ -111,7 +111,6 @@ class PCARegression(object):
         self.normalise_x = normalise_x
         self.bias = bias
         self.R = None
-        self.pca_mean = None
         self.eps = eps
 
     @staticmethod
@@ -135,47 +134,13 @@ class PCARegression(object):
             k = np.sum(variation < self.variance)
             U = U[:k, :]
         params = (X - m).dot(U.T)
-        X = params.dot(U) + m
+        X_trunc = params.dot(U) + m
 
         # Perform PCR
-        n, d = X.shape
-        if d < n:
-            # compute covariance matrix
-            # C (covariance): d x d
-            C = np.dot(X.T, X)
-            # C should be perfectly symmetrical, but numerical error can creep
-            # in. Enforce symmetry here to avoid creating complex eigenvectors
-            C = (C + C.T) / 2.0
-
-            # perform eigenvalue decomposition
-            # U (eigenvectors): d x n
-            # s (eigenvalues):  n
-            U, l = eigenvalue_decomposition(C, eps=self.eps)
-
-            # transpose U
-            # U: n x d
-            U = U.T
-        else:
-            # d > n
-            # compute small covariance matrix
-            # C (covariance): n x n
-            C = np.dot(X, X.T)
-            # C should be perfectly symmetrical, but numerical error can creep
-            # in. Enforce symmetry here to avoid creating complex eigenvectors
-            C = (C + C.T) / 2.0
-
-            # perform eigenvalue decomposition
-            # V (eigenvectors): n x n
-            # s (eigenvalues):  n
-            V, l = eigenvalue_decomposition(C, eps=self.eps)
-
-            # compute final eigenvectors
-            # U: n x d
-            w = np.sqrt(1.0 / l)
-            U = np.dot(V.T, X)
-            U *= w[:, None]
+        U, l, _ = pca(X_trunc, centre=False, inplace=True)
         inv_eig = np.linalg.inv(np.diag(l))
-        self.R = U.T.dot(inv_eig.dot(U.dot(X.T.dot(Y))))
+        cov_inv = U.T.dot(inv_eig.dot(U))
+        self.R = cov_inv.dot(X_trunc.T.dot(Y))
 
     def increment(self, X, Y):
         raise NotImplementedError()

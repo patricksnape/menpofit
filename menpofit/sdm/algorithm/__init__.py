@@ -1,5 +1,5 @@
 from .nonparametric import (NonParametricNewton, NonParametricGaussNewton,
-                            NonParametricPCARegression)
+                            NonParametricPCRRegression, NonParametricCCARegression)
 from .parametricshape import (ParametricShapeNewton, ParametricShapeGaussNewton)
 from .parametricappearance import (ParametricAppearanceProjectOutNewton,
                                    ParametricAppearanceProjectOutGaussNewton)
