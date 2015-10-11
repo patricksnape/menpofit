@@ -1,6 +1,7 @@
 import numpy as np
 from menpo.base import Targetable, Vectorizable
 from menpo.model import MeanInstanceLinearModel, PCAInstanceModel
+from menpo.shape import mean_pointcloud
 from menpofit.builder import align_shapes
 from menpofit.differentiable import DP
 
@@ -21,7 +22,6 @@ def similarity_2d_instance_model(shape):
             represent the original shape under a similarity transform. The
             model is exhaustive (that is, all possible similarity transforms
             can be expressed in the model).
-
     """
     shape_vector = shape.as_vector()
     components = np.zeros((4, shape_vector.shape[0]))
@@ -142,6 +142,91 @@ class ModelInstance(Targetable, Vectorizable, DP):
         """
         self._weights = vector
         self._sync_target_from_state()
+
+
+class GlobalSimilarityModel(Targetable, Vectorizable):
+
+    def __init__(self, data, **kwargs):
+        from menpofit.transform import DifferentiableAlignmentSimilarity
+
+        aligned_shapes = align_shapes(data)
+        self.mean = mean_pointcloud(aligned_shapes)
+        # Default target is the mean
+        self._target = self.mean
+        self.transform = DifferentiableAlignmentSimilarity(self.target,
+                                                           self.target)
+
+    @property
+    def n_weights(self):
+        r"""
+        The number of parameters in the linear model.
+
+        :type: int
+        """
+        return 4
+
+    @property
+    def weights(self):
+        r"""
+        In this simple :map:`ModelInstance` the weights are just the weights
+        of the model.
+        """
+        return self.transform.as_vector()
+
+    @property
+    def target(self):
+        return self._target
+
+    def set_target(self, new_target):
+        self.transform.set_target(new_target)
+        self._target = self.transform.apply(self.mean)
+        return self
+
+    def _as_vector(self):
+        r"""
+        Return the current parameters of this transform - this is the
+        just the linear model's weights
+
+        Returns
+        -------
+        params : (`n_parameters`,) ndarray
+            The vector of parameters
+        """
+        return self.transform.as_vector()
+
+    def from_vector_inplace(self, vector):
+        self.transform.from_vector_inplace(vector)
+        self._target = self.transform.apply(self.mean)
+
+    @property
+    def n_dims(self):
+        r"""
+        The number of dimensions of the spatial instance of the model
+
+        :type: int
+        """
+        return self.mean.n_dims
+
+    def d_dp(self, _):
+        """
+        Returns the Jacobian of the similarity model reshaped to have the
+        standard Jacobian shape:
+
+            n_points    x  n_params      x  n_dims
+
+            which maps to
+
+            n_features  x  n_components  x  n_dims
+
+            on the linear model
+
+        Returns
+        -------
+        jacobian : (n_features, n_components, n_dims) ndarray
+            The Jacobian of the model in the standard Jacobian shape.
+        """
+        # Always evaluated at the mean shape
+        return self.transform.d_dp(self.mean.points)
 
 
 class PDM(ModelInstance):
