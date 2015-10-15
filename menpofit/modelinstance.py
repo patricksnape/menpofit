@@ -248,6 +248,14 @@ class PDM(ModelInstance):
         self._target = self.model.mean()
 
     @property
+    def n_active_components(self):
+        return self.model.n_active_components
+
+    @n_active_components.setter
+    def n_active_components(self, value):
+        self.model.n_active_components = value
+
+    @property
     def n_dims(self):
         r"""
         The number of dimensions of the spatial instance of the model
