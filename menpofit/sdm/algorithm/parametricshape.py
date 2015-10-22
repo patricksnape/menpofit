@@ -50,7 +50,7 @@ class ParametricShapeSDAlgorithm(BaseSupervisedDescentAlgorithm):
         # set current shape and initialize list of shapes
         self.shape_model.set_target(initial_shape)
         current_shape = initial_shape.from_vector(
-            self.shape_model.target.as_vector()).copy()
+            self.shape_model.target.as_vector().copy())
         shapes = [current_shape]
 
         # Cascaded Regression loop
@@ -65,7 +65,7 @@ class ParametricShapeSDAlgorithm(BaseSupervisedDescentAlgorithm):
             p = self.shape_model.as_vector() + dx
             self.shape_model.from_vector_inplace(p)
             current_shape = current_shape.from_vector(
-                self.shape_model.target.as_vector())
+                self.shape_model.target.as_vector().copy())
             shapes.append(current_shape)
 
         # return algorithm result
