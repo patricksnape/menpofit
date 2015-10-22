@@ -1,1 +1,2 @@
-from .regression import IRLRegression, IIRLRegression, PCRRegression, CCARegression
+from .regression import (IRLRegression, IIRLRegression, PCRRegression,
+                         CCARegression, OPPRegression)

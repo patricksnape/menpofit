@@ -67,9 +67,9 @@ class IIRLRegression(IRLRegression):
         # previous solution
         # Note that everything is transposed from the above exchanging of roles
         H = J.dot(J.T)
-        H = (H + H.T) / 2.0
         np.fill_diagonal(H, self.alpha2 + np.diag(H))
-        self.W = np.linalg.solve(H, J)
+        self.W = np.linalg.solve(H, J).T
+        # self.W = np.linalg.pinv(J)
 
     def increment(self, X, Y):
         # incremental least squares exchanging the roles of X and Y
@@ -83,7 +83,7 @@ class IIRLRegression(IRLRegression):
         self.W = np.linalg.solve(H, J)
 
     def predict(self, x):
-        return self.W.dot(x.T).T
+        return np.dot(x, self.W)
 
 
 class PCRRegression(object):
@@ -195,6 +195,7 @@ class CCARegression(object):
             k = np.sum(variation < self.variance)
             U = U[:k, :]
 
+        # Whitened components
         inv_eig = np.sqrt(np.linalg.inv(np.diag(l[:k])))
         U = inv_eig.dot(U)
 
@@ -205,6 +206,54 @@ class CCARegression(object):
         H = V.dot(U)
 
         self.R = H.T.dot(np.linalg.pinv(X.dot(H.T)).dot(Y))
+
+    def increment(self, X, Y):
+        raise NotImplementedError()
+
+    def predict(self, x):
+        if self.bias:
+            if len(x.shape) == 1:
+                x = np.hstack((x, np.ones(1)))
+            else:
+                x = np.hstack((x, np.ones((x.shape[0], 1))))
+        return np.dot(x, self.R)
+
+
+class OPPRegression(object):
+    r"""
+    Multivariate Linear Regression using Orthogonal Procrustes Problem
+    reconstructions.
+
+    Parameters
+    ----------
+    X : numpy.array
+        The regression features used to create the coefficient matrix.
+    T : numpy.array
+        The shapes differential that denote the dependent variable.
+
+    Raises
+    ------
+    ValueError
+        variance must be set to a number between 0 and 1
+    """
+    def __init__(self, bias=True, eps=1e-10):
+        self.bias = bias
+        self.R = None
+        self.eps = eps
+
+    def train(self, X, Y):
+        if self.bias:
+            # add bias
+             X = np.hstack((X, np.ones((X.shape[0], 1))))
+
+        U, l, _ = pca(X, centre=False)
+        inv_eig = np.sqrt(np.linalg.inv(np.diag(l)))
+        U = inv_eig.dot(U)
+        X = X.dot(U.T).dot(U)
+
+        U, _, V = np.linalg.svd(X.T.dot(Y), full_matrices=False)
+        # Skinny SVD
+        self.R = U.dot(V)
 
     def increment(self, X, Y):
         raise NotImplementedError()

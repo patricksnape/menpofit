@@ -8,7 +8,7 @@ from .base import (BaseSupervisedDescentAlgorithm,
                    features_per_patch, update_non_parametric_estimates,
                    print_non_parametric_info)
 from menpofit.math import IIRLRegression, IRLRegression, PCRRegression, \
-    CCARegression
+    CCARegression, OPPRegression
 
 
 class NonParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
@@ -137,6 +137,24 @@ class NonParametricCCARegression(NonParametricSDAlgorithm):
 
         self._regressor_cls = partial(CCARegression, variance=variance,
                                       bias=bias)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
+class NonParametricOPPRegression(NonParametricSDAlgorithm):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, bias=True):
+        super(NonParametricOPPRegression, self).__init__()
+
+        self._regressor_cls = partial(OPPRegression, bias=bias)
         self.patch_shape = patch_shape
         self.patch_features = patch_features
         self.n_iterations = n_iterations

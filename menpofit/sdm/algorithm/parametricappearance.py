@@ -8,6 +8,7 @@ from .base import (BaseSupervisedDescentAlgorithm,
                    features_per_patch, update_non_parametric_estimates,
                    compute_non_parametric_delta_x, print_non_parametric_info)
 from menpo.model import PCAModel
+from menpo.visualize import print_dynamic
 from menpofit.math import IIRLRegression, IRLRegression
 from menpofit.visualize import print_progress
 
@@ -20,6 +21,7 @@ class ParametricAppearanceSDAlgorithm(BaseSupervisedDescentAlgorithm):
         super(ParametricAppearanceSDAlgorithm, self).__init__()
         self.regressors = []
         self.appearance_model_cls = appearance_model_cls
+        self.appearance_model = None
 
     def _compute_delta_x(self, gt_shapes, current_shapes):
         return compute_non_parametric_delta_x(gt_shapes, current_shapes)
@@ -31,18 +33,25 @@ class ParametricAppearanceSDAlgorithm(BaseSupervisedDescentAlgorithm):
 
     def _compute_training_features(self, images, gt_shapes, current_shapes,
                                    prefix='', verbose=False):
+
+        if self.appearance_model is None:
+            wrap = partial(print_progress,
+                           prefix='{}Extracting ground truth patches'.format(prefix),
+                           end_with_newline=not prefix, verbose=verbose)
+            n_images = len(images)
+            # Extract patches from ground truth
+            gt_patches = [features_per_patch(im, gt_s, self.patch_shape,
+                                             self.patch_features)
+                          for gt_s, im in wrap(zip(gt_shapes, images))]
+            # Calculate appearance model from extracted gt patches
+            gt_patches = np.array(gt_patches).reshape([n_images, -1])
+            if verbose:
+                print_dynamic('{}Building Appearance Model'.format(prefix))
+            self.appearance_model = self.appearance_model_cls(gt_patches)
+
         wrap = partial(print_progress,
                        prefix='{}Extracting patches'.format(prefix),
                        end_with_newline=not prefix, verbose=verbose)
-
-        n_images = len(images)
-        # Extract patches from ground truth
-        gt_patches = [features_per_patch(im, gt_s, self.patch_shape,
-                                         self.patch_features)
-                      for gt_s, im in zip(gt_shapes, images)]
-        # Calculate appearance model from extracted gt patches
-        gt_patches = np.array(gt_patches).reshape([n_images, -1])
-        self.appearance_model = self.appearance_model_cls(gt_patches)
 
         features = []
         for im, shapes in wrap(zip(images, current_shapes)):

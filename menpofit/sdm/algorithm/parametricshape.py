@@ -7,7 +7,7 @@ from .base import (BaseSupervisedDescentAlgorithm,
                    compute_parametric_delta_x, features_per_image,
                    features_per_patch, update_parametric_estimates,
                    print_parametric_info)
-from menpofit.math import IIRLRegression, IRLRegression
+from menpofit.math import IIRLRegression, IRLRegression, CCARegression
 
 
 # TODO: document me!
@@ -113,6 +113,26 @@ class ParametricShapeGaussNewton(ParametricShapeSDAlgorithm):
 
         self._regressor_cls = partial(IIRLRegression, alpha=alpha, bias=bias,
                                       alpha2=alpha2)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
+class ParametricShapeCCARegression(ParametricShapeSDAlgorithm):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3, shape_model_cls=OrthoPDM,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, variance=None, bias=True):
+        super(ParametricShapeCCARegression, self).__init__(
+            shape_model_cls=shape_model_cls)
+
+        self._regressor_cls = partial(CCARegression, variance=variance,
+                                      bias=bias)
         self.patch_shape = patch_shape
         self.patch_features = patch_features
         self.n_iterations = n_iterations

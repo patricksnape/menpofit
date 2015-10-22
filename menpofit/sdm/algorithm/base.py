@@ -244,7 +244,7 @@ def update_parametric_estimates(estimated_delta_x, delta_x, gt_x,
             model.from_vector_inplace(cx)
 
             # Update current shape inplace
-            s.from_vector_inplace(model.target.as_vector())
+            s.from_vector_inplace(model.target.as_vector().copy())
 
             delta_x[j] = gt_x[j] - cx
             j += 1
