@@ -99,13 +99,7 @@ class ParametricAppearanceSDAlgorithm(BaseSupervisedDescentAlgorithm):
                                   self._compute_error, prefix=prefix)
 
 
-class ParametricAppearanceProjectOut(ParametricAppearanceSDAlgorithm):
-
-    def _compute_parametric_features(self, patch):
-        return self.appearance_model.project_out_vector(patch.ravel())
-
-
-class ParametricAppearanceProjectOutNewton(ParametricAppearanceProjectOut):
+class ParametricAppearanceNewton(ParametricAppearanceSDAlgorithm):
     r"""
     """
 
@@ -113,7 +107,7 @@ class ParametricAppearanceProjectOutNewton(ParametricAppearanceProjectOut):
                  n_iterations=3, appearance_model_cls=PCAModel,
                  compute_error=euclidean_bb_normalised_error,
                  eps=10 ** -5, alpha=0, bias=True):
-        super(ParametricAppearanceProjectOutNewton, self).__init__(
+        super(ParametricAppearanceNewton, self).__init__(
             appearance_model_cls=appearance_model_cls)
 
         self._regressor_cls = partial(IRLRegression, alpha=alpha, bias=bias)
@@ -124,8 +118,7 @@ class ParametricAppearanceProjectOutNewton(ParametricAppearanceProjectOut):
         self.eps = eps
 
 
-# TODO: document me!
-class ParametricAppearanceProjectOutGaussNewton(ParametricAppearanceProjectOut):
+class ParametricAppearanceGaussNewton(ParametricAppearanceSDAlgorithm):
     r"""
     """
 
@@ -133,7 +126,7 @@ class ParametricAppearanceProjectOutGaussNewton(ParametricAppearanceProjectOut):
                  n_iterations=3, appearance_model_cls=PCAModel,
                  compute_error=euclidean_bb_normalised_error,
                  eps=10 ** -5, alpha=0, bias=True, alpha2=0):
-        super(ParametricAppearanceProjectOutGaussNewton, self).__init__(
+        super(ParametricAppearanceGaussNewton, self).__init__(
             appearance_model_cls=appearance_model_cls)
 
         self._regressor_cls = partial(IIRLRegression, alpha=alpha, bias=bias,
@@ -143,3 +136,39 @@ class ParametricAppearanceProjectOutGaussNewton(ParametricAppearanceProjectOut):
         self.n_iterations = n_iterations
         self._compute_error = compute_error
         self.eps = eps
+
+
+class ParametricAppearanceProjectOutNewton(ParametricAppearanceNewton):
+
+    def _compute_parametric_features(self, patch):
+        return self.appearance_model.project_out_vector(patch.ravel())
+
+
+class ParametricAppearanceMeanTemplateNewton(ParametricAppearanceNewton):
+
+    def _compute_parametric_features(self, patch):
+        return patch.ravel() - self.appearance_model.mean().ravel()
+
+
+class ParametricAppearanceWeightsNewton(ParametricAppearanceNewton):
+
+    def _compute_parametric_features(self, patch):
+        return self.appearance_model.project_vector(patch.ravel())
+
+
+class ParametricAppearanceProjectOutGuassNewton(ParametricAppearanceGaussNewton):
+
+    def _compute_parametric_features(self, patch):
+        return self.appearance_model.project_out_vector(patch.ravel())
+
+
+class ParametricAppearanceMeanTemplateGuassNewton(ParametricAppearanceGaussNewton):
+
+    def _compute_parametric_features(self, patch):
+        return patch.ravel() - self.appearance_model.mean().ravel()
+
+
+class ParametricAppearanceWeightsGuassNewton(ParametricAppearanceGaussNewton):
+
+    def _compute_parametric_features(self, patch):
+        return self.appearance_model.project_vector(patch.ravel())

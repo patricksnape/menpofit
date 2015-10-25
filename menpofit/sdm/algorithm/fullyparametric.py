@@ -24,10 +24,12 @@ class FullyParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
         self.shape_model_cls = shape_model_cls
         self.appearance_model_cls = appearance_model_cls
         self.appearance_model = None
+        self.shape_model = None
 
     def _compute_delta_x(self, gt_shapes, current_shapes):
         # This is called first - so train shape model here
-        self.shape_model = self.shape_model_cls(gt_shapes)
+        if self.shape_model is None:
+            self.shape_model = self.shape_model_cls(gt_shapes)
 
         return compute_parametric_delta_x(gt_shapes, current_shapes,
                                           self.shape_model)

@@ -2,6 +2,7 @@ import numpy as np
 
 
 from menpo.math import pca
+from menpo.math.decomposition import cca
 
 
 class IRLRegression(object):
@@ -25,7 +26,7 @@ class IRLRegression(object):
         XX = (XX + XX.T) / 2.0
         np.fill_diagonal(XX, self.alpha + np.diag(XX))
         self.V = np.linalg.inv(XX)
-        self.W = self.V.dot(X.T.dot(Y))
+        self.W = np.linalg.solve(XX, X.T.dot(Y))
 
     def increment(self, X, Y):
         if self.bias:
@@ -126,21 +127,19 @@ class PCRRegression(object):
         if self.bias:
             X = np.hstack((X, np.ones((X.shape[0], 1))))
 
-        # Reduce variance of X
-        U, l, m = pca(X)
-        variation = np.cumsum(l) / np.sum(l)
+        # Reduce variance
+        U, s, V = np.linalg.svd(X, full_matrices=False)
         if self.variance is not None:
+            variation = np.cumsum(s) / np.sum(s)
             # Inverted for easier parameter semantics
             k = np.sum(variation < self.variance)
-            U = U[:k, :]
-        params = (X - m).dot(U.T)
-        X_trunc = params.dot(U) + m
+            U = U[:, :k]
+            V = V[:k, :]
+            s = s[:k]
+        S = np.diag(s)
 
         # Perform PCR
-        U, l, _ = pca(X_trunc, centre=False, inplace=True)
-        inv_eig = np.linalg.inv(np.diag(l))
-        cov_inv = U.T.dot(inv_eig.dot(U))
-        self.R = cov_inv.dot(X_trunc.T.dot(Y))
+        self.R = V.T.dot(np.linalg.inv(S)).dot(U.T).dot(Y)
 
     def increment(self, X, Y):
         raise NotImplementedError()
@@ -157,9 +156,9 @@ class PCRRegression(object):
         return np.dot(x, self.R)
 
 
-class CCARegression(object):
+class OptimalLinearRegression(object):
     r"""
-    Multivariate Linear Regression using CCA reconstructions
+    Multivariate Linear Regression using optimal reconstructions
 
     Parameters
     ----------
@@ -188,9 +187,9 @@ class CCARegression(object):
 
         # Reduce variance of X
         U, l, _ = pca(X, centre=False)
-        variation = np.cumsum(l) / np.sum(l)
         k = U.shape[0]
         if self.variance is not None:
+            variation = np.cumsum(l) / np.sum(l)
             # Inverted for easier parameter semantics
             k = np.sum(variation < self.variance)
             U = U[:k, :]
@@ -219,6 +218,49 @@ class CCARegression(object):
         return np.dot(x, self.R)
 
 
+class CCARegression(object):
+    r"""
+    Canonical Correlation Analysis Regression
+    """
+    def __init__(self, alpha=0, bias=True):
+        self.alpha = alpha
+        self.bias = bias
+        self.R = None
+        self.Wx = None
+        self.mx = None
+        self.my = None
+        self.C = None
+
+    def train(self, X, Y):
+        # perform cca
+        self.Wx, Wy, self.mx, self.my, self.C = cca(X, Y)
+
+        # compute canonical variable
+        Zx = (X - self.mx).dot(self.Wx)
+        Zy = (Y - self.my).dot(Wy)
+
+        if self.bias:
+            # add bias
+            Zx = np.hstack((Zx, np.ones((Zx.shape[0], 1))))
+
+        # regularized linear least squares
+        ZxZx = Zx.T.dot(Zx)
+        np.fill_diagonal(ZxZx, self.alpha + np.diag(ZxZx))
+        self.R = np.linalg.solve(ZxZx, Zx.T.dot(Zy))
+
+        # post multiply by the pseudo-inverse of Wy
+        self.R = self.R.dot(np.linalg.pinv(Wy))
+
+    def predict(self, x):
+        zx = (x - self.mx).dot(self.Wx)
+        if self.bias:
+            if len(x.shape) == 1:
+                zx = np.hstack((zx, np.ones(1)))
+            else:
+                zx = np.hstack((zx, np.ones((x.shape[0], 1))))
+        return self.my + np.dot(zx, self.R)
+
+
 class OPPRegression(object):
     r"""
     Multivariate Linear Regression using Orthogonal Procrustes Problem
@@ -236,20 +278,23 @@ class OPPRegression(object):
     ValueError
         variance must be set to a number between 0 and 1
     """
-    def __init__(self, bias=True, eps=1e-10):
+    def __init__(self, bias=True, eps=1e-10, whiten=False):
         self.bias = bias
         self.R = None
         self.eps = eps
+        self.whiten = whiten
 
     def train(self, X, Y):
         if self.bias:
             # add bias
              X = np.hstack((X, np.ones((X.shape[0], 1))))
 
-        U, l, _ = pca(X, centre=False)
-        inv_eig = np.sqrt(np.linalg.inv(np.diag(l)))
-        U = inv_eig.dot(U)
-        X = X.dot(U.T).dot(U)
+        # Whiten
+        if self.whiten:
+            U, l, _ = pca(X, centre=False)
+            inv_eig = np.sqrt(np.linalg.inv(np.diag(l)))
+            U = inv_eig.dot(U)
+            X = X.dot(U.T).dot(U)
 
         U, _, V = np.linalg.svd(X.T.dot(Y), full_matrices=False)
         # Skinny SVD

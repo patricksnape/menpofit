@@ -7,7 +7,8 @@ from .base import (BaseSupervisedDescentAlgorithm,
                    compute_parametric_delta_x, features_per_image,
                    features_per_patch, update_parametric_estimates,
                    print_parametric_info)
-from menpofit.math import IIRLRegression, IRLRegression, CCARegression
+from menpofit.math import IIRLRegression, IRLRegression, OptimalLinearRegression, \
+    PCRRegression
 
 
 # TODO: document me!
@@ -22,10 +23,12 @@ class ParametricShapeSDAlgorithm(BaseSupervisedDescentAlgorithm):
         super(ParametricShapeSDAlgorithm, self).__init__()
         self.regressors = []
         self.shape_model_cls = shape_model_cls
+        self.shape_model = None
 
     def _compute_delta_x(self, gt_shapes, current_shapes):
         # This is called first - so train shape model here
-        self.shape_model = self.shape_model_cls(gt_shapes)
+        if self.shape_model is None:
+            self.shape_model = self.shape_model_cls(gt_shapes)
 
         return compute_parametric_delta_x(gt_shapes, current_shapes,
                                           self.shape_model)
@@ -120,7 +123,7 @@ class ParametricShapeGaussNewton(ParametricShapeSDAlgorithm):
         self.eps = eps
 
 
-class ParametricShapeCCARegression(ParametricShapeSDAlgorithm):
+class ParametricShapeOptimalRegression(ParametricShapeSDAlgorithm):
     r"""
     """
 
@@ -128,11 +131,31 @@ class ParametricShapeCCARegression(ParametricShapeSDAlgorithm):
                  n_iterations=3, shape_model_cls=OrthoPDM,
                  compute_error=euclidean_bb_normalised_error,
                  eps=10 ** -5, variance=None, bias=True):
-        super(ParametricShapeCCARegression, self).__init__(
+        super(ParametricShapeOptimalRegression, self).__init__(
             shape_model_cls=shape_model_cls)
 
-        self._regressor_cls = partial(CCARegression, variance=variance,
-                                      bias=bias)
+        self._regressor_cls = partial(OptimalLinearRegression,
+                                      variance=variance, bias=bias)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
+class ParametricShapePCRRegression(ParametricShapeSDAlgorithm):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3, shape_model_cls=OrthoPDM,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, variance=None, bias=True):
+        super(ParametricShapePCRRegression, self).__init__(
+            shape_model_cls=shape_model_cls)
+
+        self._regressor_cls = partial(PCRRegression,
+                                      variance=variance, bias=bias)
         self.patch_shape = patch_shape
         self.patch_features = patch_features
         self.n_iterations = n_iterations
