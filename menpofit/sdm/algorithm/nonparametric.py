@@ -113,11 +113,11 @@ class NonParametricPCRRegression(NonParametricSDAlgorithm):
     def __init__(self, patch_features=no_op, patch_shape=(17, 17),
                  n_iterations=3,
                  compute_error=euclidean_bb_normalised_error,
-                 eps=10 ** -5, variance=None, bias=True, normalise_x=True):
+                 eps=10 ** -5, variance=None, bias=True):
         super(NonParametricPCRRegression, self).__init__()
 
         self._regressor_cls = partial(PCRRegression, variance=variance,
-                                      bias=bias, normalise_x=normalise_x)
+                                      bias=bias)
         self.patch_shape = patch_shape
         self.patch_features = patch_features
         self.n_iterations = n_iterations

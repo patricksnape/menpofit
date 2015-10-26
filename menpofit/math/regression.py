@@ -106,53 +106,41 @@ class PCRRegression(object):
     ValueError
         variance must be set to a number between 0 and 1
     """
-    def __init__(self, variance=None, normalise_x=True, bias=True,
-                 eps=1e-10):
+    def __init__(self, variance=None, bias=True,eps=1e-10):
         self.variance = variance
-        self.normalise_x = normalise_x
         self.bias = bias
         self.R = None
+        self.V = None
         self.eps = eps
 
-    @staticmethod
-    def _normalise_x(x):
-        mean_x = np.mean(x, axis=0)
-        std_x = np.std(x, axis=0)
-        return (x - mean_x) / std_x
-
     def train(self, X, Y):
-        if self.normalise_x:
-            X = self._normalise_x(X)
-
         if self.bias:
             X = np.hstack((X, np.ones((X.shape[0], 1))))
 
         # Reduce variance
-        U, s, V = np.linalg.svd(X, full_matrices=False)
+        U, s, self.V = np.linalg.svd(X, full_matrices=False)
         if self.variance is not None:
             variation = np.cumsum(s) / np.sum(s)
             # Inverted for easier parameter semantics
             k = np.sum(variation < self.variance)
             U = U[:, :k]
-            V = V[:k, :]
+            self.V = self.V[:k, :]
             s = s[:k]
         S = np.diag(s)
 
         # Perform PCR
-        self.R = V.T.dot(np.linalg.inv(S)).dot(U.T).dot(Y)
+        self.R = self.V.T.dot(np.linalg.inv(S)).dot(U.T).dot(Y)
 
     def increment(self, X, Y):
         raise NotImplementedError()
 
     def predict(self, x):
-        if self.normalise_x:
-            x = self._normalise_x(x)
-
         if self.bias:
             if len(x.shape) == 1:
                 x = np.hstack((x, np.ones(1)))
             else:
                 x = np.hstack((x, np.ones((x.shape[0], 1))))
+        x = np.dot(np.dot(x, self.V.T), self.V)
         return np.dot(x, self.R)
 
 
