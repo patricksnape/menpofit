@@ -7,7 +7,7 @@ from menpofit.fitter import ModelFitter, noisy_shape_from_bounding_box
 from menpofit.sdm import SupervisedDescentFitter
 import menpofit.checks as checks
 from .algorithm.lk import WibergInverseCompositional
-# from .algorithm.sd import ProjectOutNewton
+from .algorithm.sd import ProjectOutNewton
 from .result import AAMFitterResult
 
 
@@ -47,39 +47,39 @@ class LucasKanadeAAMFitter(AAMFitter):
 
 
 # # TODO: document me!
-# class SupervisedDescentAAMFitter(SupervisedDescentFitter):
-#     r"""
-#     """
-#     def __init__(self, images, aam, group=None, bounding_box_group_glob=None,
-#                  n_shape=None, n_appearance=None, sampling=None,
-#                  sd_algorithm_cls=ProjectOutNewton,
-#                  n_iterations=6, n_perturbations=30,
-#                  perturb_from_gt_bounding_box=noisy_shape_from_bounding_box,
-#                  batch_size=None, verbose=False):
-#         self.aam = aam
-#         checks.set_models_components(aam.appearance_models, n_appearance)
-#         checks.set_models_components(aam.shape_models, n_shape)
-#         self._sampling = checks.check_sampling(sampling, aam.n_scales)
-#
-#         # patch_feature and patch_shape are not actually
-#         # used because they are fully defined by the AAM already. Therefore,
-#         # we just leave them as their 'defaults' because they won't be used.
-#         super(SupervisedDescentAAMFitter, self).__init__(
-#             images, group=group, bounding_box_group_glob=bounding_box_group_glob,
-#             reference_shape=self.aam.reference_shape,
-#             sd_algorithm_cls=sd_algorithm_cls,
-#             holistic_features=self.aam.holistic_features,
-#             diagonal=self.aam.diagonal,
-#             scales=self.aam.scales, n_iterations=n_iterations,
-#             n_perturbations=n_perturbations,
-#             perturb_from_gt_bounding_box=perturb_from_gt_bounding_box,
-#             batch_size=batch_size, verbose=verbose)
-#
-#     def _setup_algorithms(self):
-#         interfaces = self.aam.build_fitter_interfaces(self._sampling)
-#         self.algorithms = [self._sd_algorithm_cls(
-#                                interface, n_iterations=self.n_iterations[j])
-#                            for j, interface in enumerate(interfaces)]
+class SupervisedDescentAAMFitter(SupervisedDescentFitter):
+    r"""
+    """
+    def __init__(self, images, aam, group=None, bounding_box_group_glob=None,
+                 n_shape=None, n_appearance=None, sampling=None,
+                 sd_algorithm_cls=ProjectOutNewton,
+                 n_iterations=6, n_perturbations=30,
+                 perturb_from_gt_bounding_box=noisy_shape_from_bounding_box,
+                 batch_size=None, verbose=False):
+        self.aam = aam
+        checks.set_models_components(aam.appearance_models, n_appearance)
+        checks.set_models_components(aam.shape_models, n_shape)
+        self._sampling = checks.check_sampling(sampling, aam.n_scales)
+
+        # patch_feature and patch_shape are not actually
+        # used because they are fully defined by the AAM already. Therefore,
+        # we just leave them as their 'defaults' because they won't be used.
+        super(SupervisedDescentAAMFitter, self).__init__(
+            images, group=group, bounding_box_group_glob=bounding_box_group_glob,
+            reference_shape=self.aam.reference_shape,
+            sd_algorithm_cls=sd_algorithm_cls,
+            holistic_features=self.aam.holistic_features,
+            diagonal=self.aam.diagonal,
+            scales=self.aam.scales, n_iterations=n_iterations,
+            n_perturbations=n_perturbations,
+            perturb_from_gt_bounding_box=perturb_from_gt_bounding_box,
+            batch_size=batch_size, verbose=verbose)
+
+    def _setup_algorithms(self):
+        interfaces = self.aam.build_fitter_interfaces(self._sampling)
+        self.algorithms = [self._sd_algorithm_cls[j](
+                               interface, n_iterations=self.n_iterations[j])
+                           for j, interface in enumerate(interfaces)]
 
 
 # TODO: Document me!

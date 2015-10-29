@@ -1,14 +1,13 @@
 import numpy as np
 from functools import partial
 from menpo.feature import no_op
-from menpofit.result import (NonParametricAlgorithmResult,
-                             euclidean_bb_normalised_error)
+from menpofit.result import euclidean_bb_normalised_error
 
 from .base import (BaseSupervisedDescentAlgorithm,
                    features_per_patch, update_non_parametric_estimates,
-                   compute_non_parametric_delta_x, print_non_parametric_info)
+                   compute_non_parametric_delta_x, print_non_parametric_info,
+                   build_appearance_model, fit_non_parametric_shape)
 from menpo.model import PCAModel
-from menpo.visualize import print_dynamic
 from menpofit.math import IIRLRegression, IRLRegression
 from menpofit.visualize import print_progress
 
@@ -35,19 +34,9 @@ class ParametricAppearanceSDAlgorithm(BaseSupervisedDescentAlgorithm):
                                    prefix='', verbose=False):
 
         if self.appearance_model is None:
-            wrap = partial(print_progress,
-                           prefix='{}Extracting ground truth patches'.format(prefix),
-                           end_with_newline=not prefix, verbose=verbose)
-            n_images = len(images)
-            # Extract patches from ground truth
-            gt_patches = [features_per_patch(im, gt_s, self.patch_shape,
-                                             self.patch_features)
-                          for gt_s, im in wrap(zip(gt_shapes, images))]
-            # Calculate appearance model from extracted gt patches
-            gt_patches = np.array(gt_patches).reshape([n_images, -1])
-            if verbose:
-                print_dynamic('{}Building Appearance Model'.format(prefix))
-            self.appearance_model = self.appearance_model_cls(gt_patches)
+            self.appearance_model = build_appearance_model(
+                images, gt_shapes, self.patch_shape, self.patch_features,
+                self.appearance_model_cls, verbose=verbose, prefix=prefix)
 
         wrap = partial(print_progress,
                        prefix='{}Extracting patches'.format(prefix),
@@ -70,26 +59,8 @@ class ParametricAppearanceSDAlgorithm(BaseSupervisedDescentAlgorithm):
         return self._compute_parametric_features(patch_feature)
 
     def run(self, image, initial_shape, gt_shape=None, **kwargs):
-        # set current shape and initialize list of shapes
-        current_shape = initial_shape
-        shapes = [initial_shape]
-
-        # Cascaded Regression loop
-        for r in self.regressors:
-            # compute regression features
-            features = self._compute_test_features(image, current_shape)
-
-            # solve for increments on the shape vector
-            dx = r.predict(features)
-
-            # update current shape
-            current_shape = current_shape.from_vector(
-                current_shape.as_vector() + dx)
-            shapes.append(current_shape)
-
-        # return algorithm result
-        return NonParametricAlgorithmResult(image, shapes,
-                                            gt_shape=gt_shape)
+        return fit_non_parametric_shape(image, initial_shape, self,
+                                        gt_shape=gt_shape)
 
     def _print_regression_info(self, template_shape, gt_shapes, n_perturbations,
                                delta_x, estimated_delta_x, level_index,
@@ -142,7 +113,6 @@ class ParametricAppearanceProjectOutNewton(ParametricAppearanceNewton):
 
     def _compute_parametric_features(self, patch):
         return self.appearance_model.project_out_vector(patch.ravel())
-
 
 class ParametricAppearanceMeanTemplateNewton(ParametricAppearanceNewton):
 

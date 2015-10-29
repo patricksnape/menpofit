@@ -1,5 +1,6 @@
 from __future__ import division
 from functools import partial
+from menpofit.result import NonParametricAlgorithmResult
 import numpy as np
 from menpo.visualize import print_dynamic
 from menpofit.visualize import print_progress
@@ -248,3 +249,72 @@ def update_parametric_estimates(estimated_delta_x, delta_x, gt_x,
 
             delta_x[j] = gt_x[j] - cx
             j += 1
+
+
+def build_appearance_model(images, gt_shapes, patch_shape, patch_features,
+                           appearance_model_cls, verbose=False, prefix=''):
+    wrap = partial(print_progress,
+                   prefix='{}Extracting ground truth patches'.format(prefix),
+                   end_with_newline=not prefix, verbose=verbose)
+    n_images = len(images)
+    # Extract patches from ground truth
+    gt_patches = [features_per_patch(im, gt_s, patch_shape,
+                                     patch_features)
+                  for gt_s, im in wrap(zip(gt_shapes, images))]
+    # Calculate appearance model from extracted gt patches
+    gt_patches = np.array(gt_patches).reshape([n_images, -1])
+    if verbose:
+        print_dynamic('{}Building Appearance Model'.format(prefix))
+    return appearance_model_cls(gt_patches)
+
+
+def fit_parametric_shape(image, initial_shape, parametric_algo, gt_shape=None):
+    # set current shape and initialize list of shapes
+    parametric_algo.shape_model.set_target(initial_shape)
+    current_shape = initial_shape.from_vector(
+        parametric_algo.shape_model.target.as_vector().copy())
+    shapes = [current_shape]
+
+    # Cascaded Regression loop
+    for r in parametric_algo.regressors:
+        # compute regression features
+        features = parametric_algo._compute_test_features(image, current_shape)
+
+        # solve for increments on the shape vector
+        dx = r.predict(features).ravel()
+
+        # update current shape
+        p = parametric_algo.shape_model.as_vector() + dx
+        parametric_algo.shape_model.from_vector_inplace(p)
+        current_shape = current_shape.from_vector(
+            parametric_algo.shape_model.target.as_vector().copy())
+        shapes.append(current_shape)
+
+    # return algorithm result
+    return NonParametricAlgorithmResult(image, shapes,
+                                        gt_shape=gt_shape)
+
+
+def fit_non_parametric_shape(image, initial_shape, non_parametric_algo,
+                             gt_shape=None):
+    # set current shape and initialize list of shapes
+    current_shape = initial_shape
+    shapes = [initial_shape]
+
+    # Cascaded Regression loop
+    for r in non_parametric_algo.regressors:
+        # compute regression features
+        features = non_parametric_algo._compute_test_features(image,
+                                                              current_shape)
+
+        # solve for increments on the shape vector
+        dx = r.predict(features)
+
+        # update current shape
+        current_shape = current_shape.from_vector(
+            current_shape.as_vector() + dx)
+        shapes.append(current_shape)
+
+    # return algorithm result
+    return NonParametricAlgorithmResult(image, shapes,
+                                        gt_shape=gt_shape)

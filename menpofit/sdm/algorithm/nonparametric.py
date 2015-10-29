@@ -1,12 +1,11 @@
 from functools import partial
 from menpo.feature import no_op
-from menpofit.result import (NonParametricAlgorithmResult,
-                             euclidean_bb_normalised_error)
+from menpofit.result import euclidean_bb_normalised_error
 
 from .base import (BaseSupervisedDescentAlgorithm,
                    compute_non_parametric_delta_x, features_per_image,
                    features_per_patch, update_non_parametric_estimates,
-                   print_non_parametric_info)
+                   print_non_parametric_info, fit_non_parametric_shape)
 from menpofit.math import IIRLRegression, IRLRegression, PCRRegression, \
     OptimalLinearRegression, OPPRegression
 
@@ -38,26 +37,8 @@ class NonParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
                                   self.patch_shape, self.patch_features)
 
     def run(self, image, initial_shape, gt_shape=None, **kwargs):
-        # set current shape and initialize list of shapes
-        current_shape = initial_shape
-        shapes = [initial_shape]
-
-        # Cascaded Regression loop
-        for r in self.regressors:
-            # compute regression features
-            features = self._compute_test_features(image, current_shape)
-
-            # solve for increments on the shape vector
-            dx = r.predict(features)
-
-            # update current shape
-            current_shape = current_shape.from_vector(
-                current_shape.as_vector() + dx)
-            shapes.append(current_shape)
-
-        # return algorithm result
-        return NonParametricAlgorithmResult(image, shapes,
-                                            gt_shape=gt_shape)
+        return fit_non_parametric_shape(image, initial_shape, self,
+                                        gt_shape=gt_shape)
 
     def _print_regression_info(self, template_shape, gt_shapes, n_perturbations,
                                delta_x, estimated_delta_x, level_index,

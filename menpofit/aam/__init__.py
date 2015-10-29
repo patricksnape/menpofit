@@ -1,6 +1,7 @@
 from .base import HolisticAAM, LinearAAM, LinearMaskedAAM, PatchAAM, MaskedAAM
 from .fitter import (
     LucasKanadeAAMFitter,
+    SupervisedDescentAAMFitter,
     holistic_sampling_from_scale, holistic_sampling_from_step)
 from .algorithm import (
     ProjectOutForwardCompositional, ProjectOutInverseCompositional,
@@ -8,7 +9,7 @@ from .algorithm import (
     AlternatingForwardCompositional, AlternatingInverseCompositional,
     ModifiedAlternatingForwardCompositional,
     ModifiedAlternatingInverseCompositional,
-    WibergForwardCompositional, WibergInverseCompositional,)
-    # MeanTemplateNewton, MeanTemplateGaussNewton,
-    # ProjectOutNewton, ProjectOutGaussNewton,
-    # AppearanceWeightsNewton, AppearanceWeightsGaussNewton)
+    WibergForwardCompositional, WibergInverseCompositional,
+    MeanTemplateNewton, MeanTemplateGaussNewton,
+    ProjectOutNewton, ProjectOutGaussNewton,
+    AppearanceWeightsNewton, AppearanceWeightsGaussNewton)

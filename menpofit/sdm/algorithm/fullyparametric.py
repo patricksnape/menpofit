@@ -1,14 +1,13 @@
 import numpy as np
 from functools import partial
 from menpo.feature import no_op
-from menpofit.result import (NonParametricAlgorithmResult,
-                             euclidean_bb_normalised_error)
+from menpofit.result import euclidean_bb_normalised_error
 
 from .base import (BaseSupervisedDescentAlgorithm,
                    compute_parametric_delta_x, features_per_patch,
-                   update_parametric_estimates, print_parametric_info)
+                   update_parametric_estimates, print_parametric_info,
+                   build_appearance_model, fit_parametric_shape)
 from menpo.model import PCAModel
-from menpo.visualize import print_dynamic
 from menpofit.math import IIRLRegression, IRLRegression, OPPRegression
 from menpofit.modelinstance import OrthoPDM
 from menpofit.visualize import print_progress
@@ -42,19 +41,9 @@ class FullyParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
     def _compute_training_features(self, images, gt_shapes, current_shapes,
                                    prefix='', verbose=False):
         if self.appearance_model is None:
-            wrap = partial(print_progress,
-                           prefix='{}Extracting ground truth patches'.format(prefix),
-                           end_with_newline=not prefix, verbose=verbose)
-            n_images = len(images)
-            # Extract patches from ground truth
-            gt_patches = [features_per_patch(im, gt_s, self.patch_shape,
-                                             self.patch_features)
-                          for gt_s, im in wrap(zip(gt_shapes, images))]
-            # Calculate appearance model from extracted gt patches
-            gt_patches = np.array(gt_patches).reshape([n_images, -1])
-            if verbose:
-                print_dynamic('{}Building Appearance Model'.format(prefix))
-            self.appearance_model = self.appearance_model_cls(gt_patches)
+            self.appearance_model = build_appearance_model(
+                images, gt_shapes, self.patch_shape, self.patch_features,
+                self.appearance_model_cls, verbose=verbose, prefix=prefix)
 
         wrap = partial(print_progress,
                        prefix='{}Extracting patches'.format(prefix),
@@ -76,38 +65,16 @@ class FullyParametricSDAlgorithm(BaseSupervisedDescentAlgorithm):
             image, current_shape, self.patch_shape, self.patch_features)
         return self._compute_parametric_features(patch_feature)
 
-    def run(self, image, initial_shape, gt_shape=None, **kwargs):
-        # set current shape and initialize list of shapes
-        self.shape_model.set_target(initial_shape)
-        current_shape = initial_shape.from_vector(
-            self.shape_model.target.as_vector().copy())
-        shapes = [current_shape]
-
-        # Cascaded Regression loop
-        for r in self.regressors:
-            # compute regression features
-            features = self._compute_test_features(image, current_shape)
-
-            # solve for increments on the shape vector
-            dx = r.predict(features).ravel()
-
-            # update current shape
-            p = self.shape_model.as_vector() + dx
-            self.shape_model.from_vector_inplace(p)
-            current_shape = current_shape.from_vector(
-                self.shape_model.target.as_vector().copy())
-            shapes.append(current_shape)
-
-        # return algorithm result
-        return NonParametricAlgorithmResult(image, shapes,
-                                            gt_shape=gt_shape)
-
     def _print_regression_info(self, _, gt_shapes, n_perturbations,
                                delta_x, estimated_delta_x, level_index,
                                prefix=''):
         print_parametric_info(self.shape_model, gt_shapes, n_perturbations,
                               delta_x, estimated_delta_x, level_index,
                               self._compute_error, prefix=prefix)
+
+    def run(self, image, initial_shape, gt_shape=None, **kwargs):
+        return fit_parametric_shape(image, initial_shape, self,
+                                    gt_shape=gt_shape)
 
 
 class ParametricAppearanceProjectOut(FullyParametricSDAlgorithm):

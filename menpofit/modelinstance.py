@@ -254,6 +254,7 @@ class PDM(ModelInstance):
     @n_active_components.setter
     def n_active_components(self, value):
         self.model.n_active_components = value
+        self._sync_state_from_target()
 
     @property
     def n_dims(self):
