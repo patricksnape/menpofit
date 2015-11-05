@@ -1,5 +1,6 @@
 from functools import partial
 from menpo.feature import no_op
+from menpofit.math.regression import CCARegression
 from menpofit.result import euclidean_bb_normalised_error
 
 from .base import (BaseSupervisedDescentAlgorithm,
@@ -98,6 +99,25 @@ class NonParametricPCRRegression(NonParametricSDAlgorithm):
         super(NonParametricPCRRegression, self).__init__()
 
         self._regressor_cls = partial(PCRRegression, variance=variance,
+                                      bias=bias)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
+class NonParametricCCARegression(NonParametricSDAlgorithm):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, alpha=None, bias=True):
+        super(NonParametricCCARegression, self).__init__()
+
+        self._regressor_cls = partial(CCARegression, alpha=alpha,
                                       bias=bias)
         self.patch_shape = patch_shape
         self.patch_features = patch_features

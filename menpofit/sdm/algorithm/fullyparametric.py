@@ -83,6 +83,60 @@ class ParametricAppearanceProjectOut(FullyParametricSDAlgorithm):
         return self.appearance_model.project_out_vector(patch.ravel())
 
 
+class ParametricAppearanceWeights(FullyParametricSDAlgorithm):
+
+    def _compute_parametric_features(self, patch):
+        return self.appearance_model.project_vector(patch.ravel())
+
+
+class ParametricAppearanceMeanTemplate(FullyParametricSDAlgorithm):
+
+    def _compute_parametric_features(self, patch):
+        return patch.ravel() - self.appearance_model.mean().ravel()
+
+
+class FullyParametricWeightsNewton(ParametricAppearanceWeights):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3, shape_model_cls=OrthoPDM,
+                 appearance_model_cls=PCAModel,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, alpha=0, bias=True):
+        super(FullyParametricWeightsNewton, self).__init__(
+            shape_model_cls=shape_model_cls,
+            appearance_model_cls=appearance_model_cls)
+
+        self._regressor_cls = partial(IRLRegression, alpha=alpha, bias=bias)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
+class FullyParametricMeanTemplateNewton(ParametricAppearanceMeanTemplate):
+    r"""
+    """
+
+    def __init__(self, patch_features=no_op, patch_shape=(17, 17),
+                 n_iterations=3, shape_model_cls=OrthoPDM,
+                 appearance_model_cls=PCAModel,
+                 compute_error=euclidean_bb_normalised_error,
+                 eps=10 ** -5, alpha=0, bias=True):
+        super(FullyParametricMeanTemplateNewton, self).__init__(
+            shape_model_cls=shape_model_cls,
+            appearance_model_cls=appearance_model_cls)
+
+        self._regressor_cls = partial(IRLRegression, alpha=alpha, bias=bias)
+        self.patch_shape = patch_shape
+        self.patch_features = patch_features
+        self.n_iterations = n_iterations
+        self._compute_error = compute_error
+        self.eps = eps
+
+
 class FullyParametricProjectOutNewton(ParametricAppearanceProjectOut):
     r"""
     """

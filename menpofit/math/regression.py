@@ -233,7 +233,8 @@ class CCARegression(object):
 
         # regularized linear least squares
         ZxZx = Zx.T.dot(Zx)
-        np.fill_diagonal(ZxZx, self.alpha + np.diag(ZxZx))
+        if self.alpha:
+            np.fill_diagonal(ZxZx, self.alpha + np.diag(ZxZx))
         self.R = np.linalg.solve(ZxZx, Zx.T.dot(Zy))
 
         # post multiply by the pseudo-inverse of Wy

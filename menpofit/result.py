@@ -657,6 +657,7 @@ bb_norm_types = {
     'area': bb_area
 }
 
+
 @pointcloud_to_points
 def bb_normalised_error(shape_error_f, shape, gt_shape,
                         norm_shape=None, norm_type='avg_edge_length'):

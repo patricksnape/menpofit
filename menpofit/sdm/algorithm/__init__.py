@@ -1,10 +1,12 @@
 from .nonparametric import (NonParametricNewton, NonParametricGaussNewton,
                             NonParametricPCRRegression,
                             NonParametricOptimalRegression,
-                            NonParametricOPPRegression)
+                            NonParametricOPPRegression,
+                            NonParametricCCARegression)
 from .parametricshape import (ParametricShapeNewton, ParametricShapeGaussNewton,
                               ParametricShapeOptimalRegression,
-                              ParametricShapePCRRegression)
+                              ParametricShapePCRRegression,
+                              ParametricShapeCCARegression)
 from .parametricappearance import (ParametricAppearanceProjectOutNewton,
                                    ParametricAppearanceMeanTemplateGuassNewton,
                                    ParametricAppearanceMeanTemplateNewton,
@@ -13,4 +15,6 @@ from .parametricappearance import (ParametricAppearanceProjectOutNewton,
                                    ParametricAppearanceWeightsNewton)
 from .fullyparametric import (FullyParametricProjectOutNewton,
                               FullyParametricProjectOutGaussNewton,
+                              FullyParametricMeanTemplateNewton,
+                              FullyParametricWeightsNewton,
                               FullyParametricProjectOutOPP)

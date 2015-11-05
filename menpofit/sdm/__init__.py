@@ -2,11 +2,13 @@ from .fitter import SupervisedDescentFitter, SDM, RegularizedSDM
 from .algorithm import (NonParametricNewton, NonParametricGaussNewton,
                         NonParametricPCRRegression,
                         NonParametricOptimalRegression,
-                        NonParametricOPPRegression)
+                        NonParametricOPPRegression,
+                        NonParametricCCARegression)
 from .algorithm import (ParametricShapeNewton,
                         ParametricShapeGaussNewton,
                         ParametricShapeOptimalRegression,
-                        ParametricShapePCRRegression)
+                        ParametricShapePCRRegression,
+                        ParametricShapeCCARegression)
 from .algorithm import (ParametricAppearanceProjectOutNewton,
                         ParametricAppearanceMeanTemplateGuassNewton,
                         ParametricAppearanceMeanTemplateNewton,
@@ -15,4 +17,6 @@ from .algorithm import (ParametricAppearanceProjectOutNewton,
                         ParametricAppearanceWeightsNewton)
 from .algorithm import (FullyParametricProjectOutNewton,
                         FullyParametricProjectOutGaussNewton,
+                        FullyParametricMeanTemplateNewton,
+                        FullyParametricWeightsNewton,
                         FullyParametricProjectOutOPP)
