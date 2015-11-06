@@ -25,21 +25,21 @@ class IRLRegression(object):
         # ensure covariance is perfectly symmetric for inversion
         XX = (XX + XX.T) / 2.0
         np.fill_diagonal(XX, self.alpha + np.diag(XX))
-        self.V = np.linalg.inv(XX)
+        # self.V = np.linalg.inv(XX)
         self.W = np.linalg.solve(XX, X.T.dot(Y))
 
     def increment(self, X, Y):
-        if self.bias:
-            # add bias
-            X = np.hstack((X, np.ones((X.shape[0], 1))))
-
-        # incremental regularized linear regression
-        U = X.dot(self.V).dot(X.T)
-        np.fill_diagonal(U, 1 + np.diag(U))
-        U = np.linalg.inv(U)
-        Q = self.V.dot(X.T).dot(U).dot(X)
-        self.V = self.V - Q.dot(self.V)
-        self.W = self.W - Q.dot(self.W) + self.V.dot(X.T.dot(Y))
+        # if self.bias:
+        #     # add bias
+        #     X = np.hstack((X, np.ones((X.shape[0], 1))))
+        #
+        # # incremental regularized linear regression
+        # U = X.dot(self.V).dot(X.T)
+        # np.fill_diagonal(U, 1 + np.diag(U))
+        # U = np.linalg.inv(U)
+        # Q = self.V.dot(X.T).dot(U).dot(X)
+        # self.V = self.V - Q.dot(self.V)
+        # self.W = self.W - Q.dot(self.W) + self.V.dot(X.T.dot(Y))
 
     def predict(self, x):
         if self.bias:
