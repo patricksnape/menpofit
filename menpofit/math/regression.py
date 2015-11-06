@@ -40,6 +40,7 @@ class IRLRegression(object):
         # Q = self.V.dot(X.T).dot(U).dot(X)
         # self.V = self.V - Q.dot(self.V)
         # self.W = self.W - Q.dot(self.W) + self.V.dot(X.T.dot(Y))
+        raise NotImplementedError()
 
     def predict(self, x):
         if self.bias:
