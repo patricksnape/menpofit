@@ -8,7 +8,9 @@ from .algorithm import (ParametricShapeNewton,
                         ParametricShapeGaussNewton,
                         ParametricShapeOptimalRegression,
                         ParametricShapePCRRegression,
-                        ParametricShapeCCARegression)
+                        ParametricShapeCCARegression,
+                        ParametricShapeLMRegression,
+                        ParametricShapeOPPRegression)
 from .algorithm import (ParametricAppearanceProjectOutNewton,
                         ParametricAppearanceMeanTemplateGuassNewton,
                         ParametricAppearanceMeanTemplateNewton,

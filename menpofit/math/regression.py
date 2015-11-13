@@ -300,3 +300,52 @@ class OPPRegression(object):
             else:
                 x = np.hstack((x, np.ones((x.shape[0], 1))))
         return np.dot(x, self.R)
+
+
+class LMRegression(object):
+    r"""
+    Multivariate Linear Regression using Orthogonal Procrustes Problem
+    reconstructions.
+
+    Parameters
+    ----------
+    X : numpy.array
+        The regression features used to create the coefficient matrix.
+    T : numpy.array
+        The shapes differential that denote the dependent variable.
+
+    Raises
+    ------
+    ValueError
+        variance must be set to a number between 0 and 1
+    """
+    def __init__(self, alpha=None, bias=True, eps=1e-10):
+        self.bias = bias
+        self.R = None
+        self.eps = eps
+        self.alpha = alpha
+
+    def train(self, X, Y):
+        if self.bias:
+            # add bias
+            X = np.hstack((X, np.ones((X.shape[0], 1))))
+
+        # regularized linear regression
+        XX = X.T.dot(X)
+        # ensure covariance is perfectly symmetric for inversion
+        XX = (XX + XX.T) / 2.0
+        if self.alpha:
+            np.fill_diagonal(XX, self.alpha * np.diag(XX))
+        # self.V = np.linalg.inv(XX)
+        self.R = np.linalg.solve(XX, X.T.dot(Y))
+
+    def increment(self, X, Y):
+        raise NotImplementedError()
+
+    def predict(self, x):
+        if self.bias:
+            if len(x.shape) == 1:
+                x = np.hstack((x, np.ones(1)))
+            else:
+                x = np.hstack((x, np.ones((x.shape[0], 1))))
+        return np.dot(x, self.R)

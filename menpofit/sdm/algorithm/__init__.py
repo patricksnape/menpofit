@@ -6,7 +6,9 @@ from .nonparametric import (NonParametricNewton, NonParametricGaussNewton,
 from .parametricshape import (ParametricShapeNewton, ParametricShapeGaussNewton,
                               ParametricShapeOptimalRegression,
                               ParametricShapePCRRegression,
-                              ParametricShapeCCARegression)
+                              ParametricShapeCCARegression,
+                              ParametricShapeLMRegression,
+                              ParametricShapeOPPRegression)
 from .parametricappearance import (ParametricAppearanceProjectOutNewton,
                                    ParametricAppearanceMeanTemplateGuassNewton,
                                    ParametricAppearanceMeanTemplateNewton,
