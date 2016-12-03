@@ -44,12 +44,12 @@ class LucasKanadeBaseInterface(object):
         sub-sampling step of the sampling mask. If `ndarray`, then it explicitly
         defines the sampling mask. If ``None``, then no sub-sampling is applied.
     """
-    def __init__(self, transform, template, holistic_feature=no_op,
+    def __init__(self, transform, template, holistic_features=no_op,
                  sampling=None):
         self.transform = transform
         self.template = template
         self._build_sampling_mask(sampling)
-        self.holistic_feature = holistic_feature
+        self.holistic_features = holistic_features
 
     def _build_sampling_mask(self, sampling):
         n_true_pixels = self.template.n_true_pixels()
@@ -127,7 +127,7 @@ class LucasKanadeBaseInterface(object):
         """
         i = image.warp_to_mask(self.template.mask, self.transform,
                                warp_landmarks=False)
-        return self.holistic_feature(i)
+        return self.holistic_features(i)
 
     def warped_images(self, image, shapes):
         r"""
@@ -319,9 +319,9 @@ class LucasKanadeStandardInterface(LucasKanadeBaseInterface):
         defines the sampling mask. If ``None``, then no sub-sampling is applied.
     """
     def __init__(self, appearance_model, transform, template,
-                 holistic_feature=no_op, sampling=None):
+                 holistic_features=no_op, sampling=None):
         super(LucasKanadeStandardInterface, self).__init__(transform, template,
-                                                           holistic_feature=holistic_feature,
+                                                           holistic_features=holistic_features,
                                                            sampling=sampling)
         self.appearance_model = appearance_model
 
