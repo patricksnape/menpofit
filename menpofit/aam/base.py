@@ -110,7 +110,8 @@ class AAM(object):
     def __init__(self, images, group=None, holistic_features=no_op,
                  reference_shape=None, diagonal=None, scales=(0.5, 1.0),
                  transform=DifferentiablePiecewiseAffine,
-                 shape_model_cls=OrthoPDM, max_shape_components=None,
+                 shape_model_cls=OrthoPDM, subtract_appearance_mean=True,
+                 max_shape_components=None,
                  max_appearance_components=None, verbose=False,
                  batch_size=None):
         # Check parameters
@@ -128,6 +129,7 @@ class AAM(object):
         self.transform = transform
         self.diagonal = diagonal
         self.scales = scales
+        self.subtract_appearance_mean = subtract_appearance_mean
         self.max_shape_components = max_shape_components
         self.max_appearance_components = max_appearance_components
         self.reference_shape = reference_shape
@@ -250,7 +252,8 @@ class AAM(object):
                     scale_prefix))
 
             if not increment:
-                appearance_model = PCAModel(warped_images)
+                appearance_model = PCAModel(
+                    warped_images, centre=self.subtract_appearance_mean)
                 # trim appearance model if required
                 if self.max_appearance_components[j] is not None:
                     appearance_model.trim_components(
