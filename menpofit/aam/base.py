@@ -205,17 +205,8 @@ class AAM(object):
                 scale_prefix = None
 
             # Handle holistic features
-            if j == 0 and self.holistic_features[j] == no_op:
-                # Saves a lot of memory
-                feature_images = image_batch
-            elif j == 0 or self.holistic_features[j] is not self.holistic_features[j - 1]:
-                # Compute features only if this is the first pass through
-                # the loop or the features at this scale are different from
-                # the features at the previous scale
-                feature_images = compute_features(image_batch,
-                                                  self.holistic_features[j],
-                                                  prefix=scale_prefix,
-                                                  verbose=verbose)
+            feature_images = image_batch
+
             # handle scales
             if self.scales[j] != 1:
                 # Scale feature images only if scale is different than 1
@@ -248,6 +239,10 @@ class AAM(object):
             warped_images = self._warp_images(scaled_images, scale_shapes,
                                               scaled_reference_shape,
                                               j, scale_prefix, verbose)
+            warped_images = compute_features(warped_images,
+                                             self.holistic_features[j],
+                                             prefix=scale_prefix,
+                                             verbose=verbose)
 
             # obtain appearance model
             if verbose:
