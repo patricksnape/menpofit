@@ -555,15 +555,15 @@ class AAM(object):
             The `list` of Lucas-Kanade interface per scale.
         """
         interfaces = []
-        for am, sm, s in zip(self.appearance_models, self.shape_models,
-                             sampling):
+        for k, am, sm, s in enumerate(zip(self.appearance_models, self.shape_models,
+                             sampling)):
             template = am.mean()
             md_transform = OrthoMDTransform(
                 sm, self.transform,
                 source=template.landmarks['source'].lms)
             interface = LucasKanadeStandardInterface(
                 am, md_transform, template,
-                holistic_features=self.holistic_features,
+                holistic_features=self.holistic_features[k],
                 sampling=s)
             interfaces.append(interface)
         return interfaces
