@@ -331,7 +331,7 @@ class AAM(object):
 
     def _warp_images(self, images, shapes, reference_shape, scale_index,
                      prefix, verbose):
-        self.reference_frames[scale_index] = build_reference_frame(reference_shape)
+        self.reference_frames.append(build_reference_frame(reference_shape))
         return warp_images(images, shapes, self.reference_frames[scale_index],
                            self.transform, prefix=prefix, verbose=verbose)
 
