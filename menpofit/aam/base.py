@@ -125,6 +125,7 @@ class AAM(object):
         max_appearance_components = checks.check_max_components(
             max_appearance_components, n_scales, 'max_appearance_components')
         # Assign attributes
+        self.reference_frames = []
         self.holistic_features = holistic_features
         self.transform = transform
         self.diagonal = diagonal
@@ -245,6 +246,9 @@ class AAM(object):
                                              self.holistic_features[j],
                                              prefix=scale_prefix,
                                              verbose=verbose)
+            for k, w in enumerate(warped_images):
+                if not hasattr(w, 'mask'):
+                    warped_images[k] = w.as_masked(self.reference_frames[j].mask)
 
             # obtain appearance model
             if verbose:
@@ -327,9 +331,9 @@ class AAM(object):
 
     def _warp_images(self, images, shapes, reference_shape, scale_index,
                      prefix, verbose):
-        reference_frame = build_reference_frame(reference_shape)
-        return warp_images(images, shapes, reference_frame, self.transform,
-                           prefix=prefix, verbose=verbose)
+        self.reference_frames[scale_index] = build_reference_frame(reference_shape)
+        return warp_images(images, shapes, self.reference_frames[scale_index],
+                           self.transform, prefix=prefix, verbose=verbose)
 
     @property
     def n_scales(self):
