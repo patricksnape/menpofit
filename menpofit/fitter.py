@@ -355,21 +355,9 @@ class MultiScaleNonParametricFitter(object):
         scale_transforms = []
         for i in range(self.n_scales):
             # Extract features
-            if (i == 0 or
-                    self.holistic_features[i] != self.holistic_features[i - 1]):
-                # Compute features only if this is the first pass through
-                # the loop or the features at this scale are different from
-                # the features at the previous scale
-                feature_image = self.holistic_features[i](tmp_image)
-
-                # Until now, we have introduced an affine transform that
-                # consists of the image rescale to the reference shape,
-                # as well as potential rescale (down-sampling) caused by
-                # features. We need to store this transform (estimated by
-                # AlignmentAffine) in order to be able to revert it at the
-                # final fitting result.
+            if i == 0:
                 affine_transforms.append(AlignmentAffine(
-                    feature_image.landmarks['__initial_shape'].lms,
+                    tmp_image.landmarks['__initial_shape'].lms,
                     initial_shape))
             else:
                 # If features are not extracted, then the affine transform
@@ -379,12 +367,12 @@ class MultiScaleNonParametricFitter(object):
             # Rescale images according to scales
             if self.scales[i] != 1:
                 # Scale feature images only if scale is different than 1
-                scaled_image, scale_transform = feature_image.rescale(
+                scaled_image, scale_transform = tmp_image.rescale(
                     self.scales[i], return_transform=True)
             else:
                 # Otherwise the image remains the same and the transform is the
                 # identity matrix.
-                scaled_image = feature_image
+                scaled_image = tmp_image
                 scale_transform = Scale(1., initial_shape.n_dims)
 
             # Add scale transform to list

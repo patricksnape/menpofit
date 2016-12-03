@@ -562,7 +562,9 @@ class AAM(object):
                 sm, self.transform,
                 source=template.landmarks['source'].lms)
             interface = LucasKanadeStandardInterface(
-                am, md_transform, template, sampling=s)
+                am, md_transform, template,
+                holistic_features=self.holistic_features,
+                sampling=s)
             interfaces.append(interface)
         return interfaces
 
