@@ -118,12 +118,14 @@ class LucasKanadeFitter(MultiScaleNonParametricFitter):
         for j, (t, s) in enumerate(zip(self.templates, self.sources)):
             transform = self.transform_cls(s, s)
             residual = residual_cls()
-            self.algorithms.append(algorithm_cls(t, transform, residual))
+            self.algorithms.append(algorithm_cls(t, transform, residual,
+                                                 holistic_features))
 
     def _prepare_template(self, template, group=None):
         gt_shape = template.landmarks[group].lms
         templates, _, sources, _, _ = self._prepare_image(template, gt_shape,
                                                           gt_shape=gt_shape)
+        templates = [self.holistic_features(t) for t in templates]
         return templates, sources
 
     def _fitter_result(self, image, algorithm_results, affine_transforms,

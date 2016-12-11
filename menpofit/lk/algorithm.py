@@ -32,10 +32,12 @@ class LucasKanade(object):
     eps : `float`, optional
         Value for checking the convergence of the optimization.
     """
-    def __init__(self, template, transform, residual, eps=10**-10):
+    def __init__(self, template, transform, residual, holistic_features,
+                 eps=10**-10):
         self.template = template
         self.transform = transform
         self.residual = residual
+        self.holistic_features = holistic_features
         self.eps = eps
 
     def warped_images(self, image, shapes):
@@ -60,8 +62,10 @@ class LucasKanade(object):
         warped_images = []
         for s in shapes:
             self.transform.set_target(s)
-            warped_images.append(image.warp_to_mask(
-                    self.template.mask, self.transform, warp_landmarks=False))
+            warped = image.warp_to_mask(self.template.mask, self.transform,
+                                        warp_landmarks=False)
+            feature = self.holistic_features(warped)
+            warped_images.append(feature)
         return warped_images
 
 
