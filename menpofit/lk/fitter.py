@@ -119,7 +119,7 @@ class LucasKanadeFitter(MultiScaleNonParametricFitter):
             transform = self.transform_cls(s, s)
             residual = residual_cls()
             self.algorithms.append(algorithm_cls(t, transform, residual,
-                                                 holistic_features))
+                                                 holistic_features[j]))
 
     def _prepare_template(self, template, group=None):
         gt_shape = template.landmarks[group].lms
