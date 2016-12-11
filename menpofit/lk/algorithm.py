@@ -122,6 +122,7 @@ class ForwardAdditive(LucasKanade):
             # warp image
             IWxp = image.warp_to_mask(self.template.mask, self.transform,
                                       warp_landmarks=False)
+            IWxp = self.holistic_features(IWxp)
 
             # compute warp jacobian
             dW_dp = np.rollaxis(
@@ -256,6 +257,7 @@ class ForwardCompositional(LucasKanade):
             # warp image
             IWxp = image.warp_to_mask(self.template.mask, self.transform,
                                       warp_landmarks=False)
+            IWxp = self.holistic_features(IWxp)
 
             # compute steepest descent images
             filtered_J, J = self.residual.steepest_descent_images(
@@ -388,6 +390,7 @@ class InverseCompositional(LucasKanade):
             # warp image
             IWxp = image.warp_to_mask(self.template.mask, self.transform,
                                       warp_landmarks=False)
+            IWxp = self.holistic_features(IWxp)
 
             # compute steepest descent parameter updates.
             sd_dp = self.residual.steepest_descent_update(
