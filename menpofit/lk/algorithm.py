@@ -194,9 +194,10 @@ class ForwardCompositional(LucasKanade):
     eps : `float`, optional
         Value for checking the convergence of the optimization.
     """
-    def __init__(self, template, transform, residual, eps=10**-10):
+    def __init__(self, template, transform, residual, holistic_features,
+                 eps=10**-10):
         super(ForwardCompositional, self).__init__(
-            template, transform, residual, eps=eps)
+            template, transform, residual, holistic_features, eps=eps)
         self._precompute()
 
     def _precompute(self):
@@ -321,9 +322,10 @@ class InverseCompositional(LucasKanade):
     eps : `float`, optional
         Value for checking the convergence of the optimization.
     """
-    def __init__(self, template, transform, residual, eps=10**-10):
+    def __init__(self, template, transform, residual, holistic_features,
+                 eps=10**-10):
         super(InverseCompositional, self).__init__(
-            template, transform, residual, eps=eps)
+            template, transform, residual, holistic_features, eps=eps)
         self._precompute()
 
     def _precompute(self):
